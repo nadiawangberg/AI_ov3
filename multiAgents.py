@@ -153,7 +153,23 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         #depth = 1
 
-        #while (curr_depth != )
+        curr_depth = 1
+        curr_state = gameState
+        while (curr_depth != self.depth):
+          packman_actions = curr_state.getLegalActions(0)
+          max_value = -100000
+          for action in packman_actions:
+            future_state = gameState.generateSuccessor(0, action) #agent index, action
+            state_val = self.evaluationFunction(future_state)
+            #max of state_val
+            if (state_val > max_value):
+              max_value = state_val
+              best_future = future_state
+          #got the best future state
+          curr_state = best_future
+          curr_depth += 1
+
+        #found the best future state
 
         #do stuff for packman
         packman_actions = gameState.getLegalActions(0)
