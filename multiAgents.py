@@ -133,8 +133,74 @@ class MinimaxAgent(MultiAgentSearchAgent):
     return legalMoves[chosenIndex]
     """
 
+    def minimax(self, game_state, player_index, curr_depth):
+      #player_index : 0,1,2,3 (0 is packman)
+      #game_state : current state
+      #curr_depth : depth of the tree, the depth is incremented when all agents have had their turn
+
+      #this function is based on two pseudocodes for minimax
+      # https://www.geeksforgeeks.org/minimax-algorithm-in-game-theory-set-1-introduction/
+      # https://www.geeksforgeeks.org/minimax-algorithm-in-game-theory-set-3-tic-tac-toe-ai-finding-optimal-move/
+
+      #chooses between minimizing player and maximizing player
+      if (player_index == 0):
+        isPackman = True
+      else:
+        isPackman = False
+
+      #if we are at self.depth or the agent has no actions to do, return the value of the heuristics
+      if (curr_depth == self.depth) or (len(game_state.getLegalActions(player_index)) == 0):
+        return self.evaluationFunction(game_state) # the heuristics of the game, will say something about how 'good' a state is
+
+      if (isPackman):
+        #MAXIMIZE
+        packman_actions = game_state.getLegalActions(0)
+        best_action = packman_actions[0]
+        max_value = float('-inf')
+
+        for action in packman_actions:
+          future_state = game_state.generateSuccessor(0, action) # finds future state based on action, for agent 0 (aka packman)
+          state_val = self.minimax(future_state, 1, curr_depth) # state_val will be given by the minimal action chosen by the ghost (index 1)
+
+          #max(max_value, value)
+          if (state_val > max_value):
+            max_value = state_val
+            best_action = action
+
+        #return the max_value based on recursive minimax
+        return max_value
+
+      else:
+        #MINIMIZE
+        ghost_actions = game_state.getLegalActions(player_index)
+        best_action = ghost_actions[0]
+        min_value = float('inf')
+
+        for action in ghost_actions:
+          next_player = (player_index + 1) % game_state.getNumAgents() # will go through 1,2,0,1,2,0... if we have two ghosts
+
+          #an action creates many potential future states (given by each action), must minimax all futures
+          future_state = game_state.generateSuccessor(player_index, action)
+          
+          if (next_player == 0): #the last ghost
+            state_val = self.minimax(future_state, next_player, curr_depth + 1)
+          else:
+            state_val = self.minimax(future_state, next_player, curr_depth)
+
+          #min(min_value, value)
+          if (state_val < min_value):
+            min_value = state_val
+            best_action = action
+
+        #return the min_value based on recursive minimax
+        return min_value
+
+
+
     def getAction(self, gameState):
         """
+          HINTS
+
           Returns the minimax action from the current gameState using self.depth
           and self.evaluationFunction(gameState).
 
@@ -151,57 +217,22 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns the total number of agents in the game
         """
 
-        #depth = 1
-
-        curr_depth = 1
-        curr_state = gameState
-        while (curr_depth != self.depth):
-          packman_actions = curr_state.getLegalActions(0)
-          max_value = -100000
-          for action in packman_actions:
-            future_state = gameState.generateSuccessor(0, action) #agent index, action
-            state_val = self.evaluationFunction(future_state)
-            #max of state_val
-            if (state_val > max_value):
-              max_value = state_val
-              best_future = future_state
-          #got the best future state
-          curr_state = best_future
-          curr_depth += 1
-
-        #found the best future state
-
-        #do stuff for packman
+        #MAXIMIZE FOR PACKMAN
         packman_actions = gameState.getLegalActions(0)
-        best_action = packman_actions[0]
-        max_value = -100000
+        best_action = None
+        max_value = float('-inf')
+
         for action in packman_actions:
           future_state = gameState.generateSuccessor(0, action) #agent index, action
-          state_val = self.evaluationFunction(future_state)
+          state_val = self.minimax(future_state, 1, 0) # ghost is index 1, curr depth is 0
 
-          print("state_val: ", state_val, "max_value: " , max_value)
+          #max(max_value, value)
           if (state_val > max_value):
             max_value = state_val
-            print("new max value: ", max_value)
-            print()
-            print()
             best_action = action
 
-        print("im gonna do action: ", best_action)
-        return best_action # returns the fist action
-
-        """
-        #choose action for ghost
-        for i in range(1, gameState.getNumAgents()):
-          ghost_actions = gameState.getLegalActions(0)
-          for action in ghost_actions:
-            print("agent: ", i, " can do action: ", action)
-        """
-
-        print(gameState.getNumAgents())
-
-        #Needs to be here??
-        util.raiseNotDefined()
+        #Packman has chose his fav action based on minimax
+        return best_action
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
