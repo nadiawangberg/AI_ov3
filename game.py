@@ -44,6 +44,22 @@ class Agent:
         The Agent will receive a GameState (from either {pacman, capture, sonar}.py) and
         must return an action from Directions.{North, South, East, West, Stop}
         """
+
+
+        #????? what part told me to implement this??
+        legalMoves = state.getLegalActions()
+        return self.evaluationFunction(state)
+
+        """
+        # Choose one of the best actions
+        scores = [self.evaluationFunction(state, action) for action in legalMoves]
+        bestScore = max(scores)
+        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+        chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+
+        return legalMoves[chosenIndex]
+        """
+
         raiseNotDefined()
 
 class Directions:
